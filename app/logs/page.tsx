@@ -27,8 +27,12 @@ type Stats = {
   total_requests: number
   blocked_count: number
   safe_count: number
+  injection_rate: string // Backend now sends string like "43.3%"
+  top_patterns: { trigger: string, count: number }[] // New from MongoDB
   recent_logs: LogEntry[]
 }
+
+
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -53,7 +57,11 @@ export default function DashboardPage() {
     const interval = setInterval(fetchStats, 5000)
     return () => clearInterval(interval)
   }, [])
-
+  
+  // Find the max count to dynamically size the red progress bars
+  const maxPatternCount = stats?.top_patterns?.length 
+    ? Math.max(...stats.top_patterns.map(p => p.count)) 
+    : 1;
   // --- DUMMY CHART DATA (Since backend aggregation takes time to build) ---
   // In a real app, you'd fetch this. For demo, we simulate a "Live Traffic" curve.
   const chartData = [
@@ -69,31 +77,6 @@ export default function DashboardPage() {
   return (
     <div className="flex h-screen bg-background font-sans text-foreground">
       
-      {/* --- SIDEBAR (Reused for Consistency) --- */}
-      <aside className="w-64 border-r border-border bg-sidebar flex flex-col hidden md:flex">
-        <div className="h-16 border-b border-sidebar-border flex items-center gap-3 px-6">
-          <Shield className="w-6 h-6 text-sidebar-primary" strokeWidth={2.5} />
-          <span className="font-semibold text-base tracking-tight text-sidebar-foreground">AEGIS CORE</span>
-        </div>
-
-        <nav className="flex-1 p-3 space-y-1">
-          <Link href="/">
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors">
-              <Activity className="w-4 h-4" />
-              Live Monitor
-            </button>
-          </Link>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium bg-sidebar-accent text-sidebar-accent-foreground">
-            <FileText className="w-4 h-4" />
-            Threat Logs
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors">
-            <Settings className="w-4 h-4" />
-            Configuration
-          </button>
-        </nav>
-      </aside>
-
       {/* --- MAIN DASHBOARD CONTENT --- */}
       <main className="flex-1 flex flex-col overflow-hidden">
         
@@ -126,7 +109,7 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground mt-1">+12% from last hour</p>
             </div>
 
-            {/* Threats Blocked */}
+            {/* Threats Blocked Card */}
             <div className="p-6 rounded-xl border border-border bg-card shadow-sm relative overflow-hidden">
               <div className="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-bl-full -mr-4 -mt-4" />
               <div className="flex items-center justify-between mb-4">
@@ -135,7 +118,7 @@ export default function DashboardPage() {
               </div>
               <div className="text-2xl font-bold text-red-600">{stats?.blocked_count || 0}</div>
               <p className="text-xs text-red-600/60 mt-1 font-medium">
-                {stats ? ((stats.blocked_count / stats.total_requests) * 100).toFixed(1) : 0}% Injection Rate
+                {stats?.injection_rate || "0%"} Injection Rate {/* REAL INJECTION RATE */}
               </p>
             </div>
 
@@ -155,7 +138,7 @@ export default function DashboardPage() {
             {/* Main Chart */}
             <div className="lg:col-span-2 p-6 rounded-xl border border-border bg-card shadow-sm">
               <h3 className="text-sm font-medium mb-6">Traffic Analysis (Live)</h3>
-              <div className="h-[250px] w-full">
+              <div className="h-62.5 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
@@ -182,21 +165,25 @@ export default function DashboardPage() {
             <div className="p-6 rounded-xl border border-border bg-card shadow-sm">
               <h3 className="text-sm font-medium mb-4">Top Attack Patterns</h3>
               <div className="space-y-4">
-                {[
-                  { name: "Prompt Injection", count: 12, width: "80%" },
-                  { name: "Jailbreak (DAN)", count: 5, width: "40%" },
-                  { name: "PII Leakage", count: 3, width: "25%" },
-                ].map((item) => (
-                  <div key={item.name}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>{item.name}</span>
-                      <span className="font-bold">{item.count}</span>
+                {stats?.top_patterns && stats.top_patterns.length > 0 ? (
+                  stats.top_patterns.map((item) => (
+                    <div key={item.trigger}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="capitalize">{item.trigger}</span>
+                        <span className="font-bold">{item.count}</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-red-500 rounded-full" 
+                          // Calculate width dynamically
+                          style={{ width: `${(item.count / maxPatternCount) * 100}%` }} 
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-red-500 rounded-full" style={{ width: item.width }} />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No attack patterns detected yet.</p>
+                )}
               </div>
             </div>
           </div>
