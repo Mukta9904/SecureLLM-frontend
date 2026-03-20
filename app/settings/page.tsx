@@ -8,7 +8,7 @@ import { SlidersHorizontal, CheckCircle2, Loader2, Database } from "lucide-react
 const AVAILABLE_MODELS = [
   { id: "LR_models", name: "Logistic Regression (Context-Aware Baseline)" },
   { id: "RF_models", name: "Random Forest (High Recall Tree)" },
-  // Add more here if you train XGBoost! e.g., { id: "XGB_models", name: "XGBoost Classifier" }
+  { id: "XGB_models", name: "XGBoost Classifier" }
 ]
 
 export default function SettingsPage() {
