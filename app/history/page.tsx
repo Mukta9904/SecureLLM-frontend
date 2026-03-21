@@ -19,7 +19,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/chat/sessions")
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/sessions`)
         setSessions(res.data.sessions)
       } catch (error) {
         console.error("Failed to fetch sessions", error)

@@ -52,7 +52,7 @@ function ChatInterface() {
     // 4. Fetch the history for this session
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(`http://127.0.0.1:8000/chat/sessions/${currentSession}`)
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/chat/sessions/${currentSession}`)
         if (res.data.messages && res.data.messages.length > 0) {
             const historyMessages = res.data.messages.map((msg: any, index: number) => {
                 const isThreat = msg.role === "bot" && msg.is_blocked === true;
@@ -111,7 +111,7 @@ function ChatInterface() {
     setMessages((prev) => [...prev, newMessage])
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/chat", {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chat`, {
         message: currentInput,
         session_id: sessionId 
       })

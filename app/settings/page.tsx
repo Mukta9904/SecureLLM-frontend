@@ -21,7 +21,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/admin/settings/config")
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings/config`)
         setThreshold(res.data.threshold)
         setModelFolder(res.data.model_folder || "new_models")
       } catch (e) {

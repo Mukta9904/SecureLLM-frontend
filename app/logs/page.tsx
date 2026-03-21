@@ -42,7 +42,7 @@ export default function DashboardPage() {
   // --- FETCH DATA ---
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/admin/stats")
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/stats`)
       setStats(res.data)
     } catch (error) {
       console.error("Failed to fetch stats", error)
