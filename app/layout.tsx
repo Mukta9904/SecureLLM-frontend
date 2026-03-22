@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 
-// 1. Add the CSS variable mapping here:
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: "--font-inter", 
-});
+// 1. Import BOTH components
+import ServerWakeUp from "@/components/ServerWakeUp";
+import Sidebar from "@/components/Sidebar"; 
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aegis - Enterprise Security",
-  description: "SecureLLM Chat Interface",
+  title: "Aegis SecureLLM",
+  description: "Enterprise Prompt Injection Firewall",
 };
 
 export default function RootLayout({
@@ -21,18 +20,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* 2. Apply BOTH the variable and the font-sans class here */}
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {/* 3. Removed 'font-sans' from here so it doesn't conflict */}
-        <div className="flex h-screen bg-background overflow-hidden text-foreground">
+      <body className={inter.className}>
+        {/* The WakeUp component wraps everything */}
+        <ServerWakeUp>
           
-          <Sidebar />
-
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            {children}
+          {/* Your actual App Layout is restored here */}
+          <div className="flex h-screen w-full bg-background overflow-hidden">
+            
+            {/* The Sidebar is back! */}
+            <Sidebar />
+            
+            {/* The main chat window */}
+            <main className="flex-1 flex flex-col h-full overflow-hidden">
+              {children}
+            </main>
+            
           </div>
 
-        </div>
+        </ServerWakeUp>
       </body>
     </html>
   );
