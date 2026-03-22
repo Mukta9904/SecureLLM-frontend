@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-// 1. Import the new component
+
+// 1. Import BOTH components
 import ServerWakeUp from "@/components/ServerWakeUp";
+import Sidebar from "@/components/Sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,9 +21,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* 2. Wrap the children in the WakeUp component! */}
+        {/* The WakeUp component wraps everything */}
         <ServerWakeUp>
-          {children}
+          
+          {/* Your actual App Layout is restored here */}
+          <div className="flex h-screen w-full bg-background overflow-hidden">
+            
+            {/* The Sidebar is back! */}
+            <Sidebar />
+            
+            {/* The main chat window */}
+            <main className="flex-1 flex flex-col h-full overflow-hidden">
+              {children}
+            </main>
+            
+          </div>
+
         </ServerWakeUp>
       </body>
     </html>
