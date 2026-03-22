@@ -8,7 +8,8 @@ import { SlidersHorizontal, CheckCircle2, Loader2, Database } from "lucide-react
 const AVAILABLE_MODELS = [
   { id: "LR_models", name: "Logistic Regression (Context-Aware Baseline)" },
   { id: "RF_models", name: "Random Forest (High Recall Tree)" },
-  { id: "XGB_models", name: "XGBoost Classifier" }
+  { id: "XGB_models", name: "XGBoost Classifier" },
+  { id: "cascade", name: "Aegis Cascade (LR + DistilBERT Routing)" }
 ]
 
 export default function SettingsPage() {
@@ -37,7 +38,7 @@ export default function SettingsPage() {
     setSaving(true)
     setSavedMessage("")
     try {
-      await axios.post("http://127.0.0.1:8000/admin/settings/config", { 
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings/config`, { 
         threshold: threshold,
         model_folder: modelFolder 
       })
@@ -77,43 +78,40 @@ export default function SettingsPage() {
                   <Database className="w-4 h-4 text-muted-foreground" />
                   <label className="text-sm font-medium">Active Security Model</label>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Select the ML architecture currently powering the Aegis firewall. Changes apply instantly without server restart.
-                </p>
                 <select 
                   value={modelFolder}
                   onChange={(e) => setModelFolder(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-4 py-2.5 rounded-lg border border-input bg-background"
                 >
                   {AVAILABLE_MODELS.map(model => (
-                    <option key={model.id} value={model.id}>{model.name} (Folder: /{model.id})</option>
+                    <option key={model.id} value={model.id}>{model.name}</option>
                   ))}
                 </select>
               </div>
 
               {/* --- THRESHOLD SLIDER --- */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium">Risk Score Threshold</label>
-                  <span className="text-lg font-bold text-primary">{threshold.toFixed(2)}</span>
+              {modelFolder === "cascade" ? (
+                 <div className="bg-blue-50/50 p-4 rounded-md border border-blue-100">
+                    <p className="text-sm text-blue-800 font-medium">Cascade Mode Active</p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Manual threshold overrides are disabled. The system will dynamically route 
+                      prompts between Layer 1 (0.15 - 0.85 confidence bounds) and Layer 2 (Semantic Engine).
+                    </p>
+                 </div>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-sm font-medium">Risk Score Threshold</label>
+                    <span className="text-lg font-bold text-primary">{threshold.toFixed(2)}</span>
+                  </div>
+                  <input 
+                    type="range" min="0.10" max="0.90" step="0.01" 
+                    value={threshold}
+                    onChange={(e) => setThreshold(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Any prompt with an ML Risk Score higher than this value will be blocked instantly. 
-                </p>
-                
-                <input 
-                  type="range" min="0.10" max="0.90" step="0.01" 
-                  value={threshold}
-                  onChange={(e) => setThreshold(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-                
-                <div className="flex justify-between text-xs text-muted-foreground mt-2 font-medium">
-                  <span className="text-green-600/70">Strict (0.10)</span>
-                  <span>Balanced (0.45)</span>
-                  <span className="text-red-600/70">Lenient (0.90)</span>
-                </div>
-              </div>
+              )}
 
               <div className="pt-6 border-t border-border flex items-center gap-4">
                 <button 
